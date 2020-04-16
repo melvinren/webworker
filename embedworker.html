@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Embeded worker</title>
+    <script type="text/js-worker">
+        // 不会被执行， mineType是text/js-worker
+        var myVar = "Hello worker"
+    </script>
+    <script type="text/javascript">
+        function pageLog(msg){
+            var frag = document.createDocumentFragment()
+            frag.appendChild(document.createTextNode(msg))
+            frag.appendChild(document.createElement('br'))
+            document.querySelector("#logDisplay").appendChild(frag);
+        }
+    </script>
+    <script type="text/js-worker">
+        onmessage = function(e){
+            postMessage(myVar)
+        }
+    </script>
+    <script type="text/javascript">
+        var blob = new Blob(Array.prototype.map.call(document.querySelectorAll("script[type=\"text\/js-worker\"]"), function(oScript){
+            return oScript.textContent;
+        }), {type: "text/javascript"});
+        console.log(blob)
+        document.worker = new Worker(window.URL.createObjectURL(blob));
+        document.worker.onmessage = function(oEvent){
+            pageLog("Received:" + oEvent.data);
+        }
+
+        // 启动worker
+        window.onload = function(){
+            document.worker.postMessage("")
+        }
+    </script>
+</head>
+<body>
+    <div id="logDisplay"></div>
+</body>
+</html>
